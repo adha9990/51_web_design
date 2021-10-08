@@ -1,0 +1,31 @@
+#header{
+    position: absolute;
+    height: 10vh;
+    width: 100%;
+}
+#aside{
+    position: absolute;
+    top: 10vh;
+    width: 15%;
+    height: 90vh;
+}
+#main{
+    position: absolute;
+    top: 10vh;
+    left: 15%;
+    height: 90vh;
+    width: 85%;
+}
+li.item:hover{
+    cursor: pointer;
+    background-color: lightgray;
+}
+table{
+    table-layout: fixed;
+}
+.contact .actions{
+    display: none;
+}
+.contact:hover .actions{
+    display: block;
+}

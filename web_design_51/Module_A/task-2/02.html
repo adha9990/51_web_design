@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        <p>操作區</p>
+        <input type="file" name="" style="display:none;" id="file" onchange="handle()" multiple>
+        <input type="file" name="" style="display:none;" id="folder" onchange="handle()" webkitdirectory directory>
+        <button type="button" onclick="document.getElementById('file').click()">下載檔案</button>
+        <button type="button" onclick="document.getElementById('folder').click()">下載資料夾</button>
+    </div>
+    <div>
+        <p>檔案預覽區</p>
+        <div id="show"></div>
+    </div>
+    <div>
+        <p>下載區</p>
+        <input type="text" name="" id="download">
+        <button type="button" onclick="download()">下載</button>
+    </div>
+    <script src="jszip.min.js"></script>
+    <script src="02.js"></script>
+</body>
+</html>

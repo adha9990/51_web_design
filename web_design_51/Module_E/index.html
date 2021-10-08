@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人聯絡人系統</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    
+</head>
+<body>
+    <div id="app">
+        <header id="header" class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+            <h1 class="navbar-brand">個人聯絡人系統</h1>
+            <form action="" id="searchForm" @submit.prevent="searchText" class="ml-auto">
+                <input type="text" name="search" v-model='search' class="form-control" placeholder="search...">
+            </form>
+        </header>
+        <aside id="aside" class="shadow-sm">
+            <div class="p-4">
+                <button type="button" id="addContact" class="btn btn-outline-primary w-100" @click="dialogShow('contact')">新增聯絡人</button>
+                <br>
+                <br>
+                <ul class="list list-group">
+                    <li class="item list-group-item" @click="searchTag(-1)">聯絡人<span class="num badge badge-primary float-right">{{nums[0]}}</span></li>
+                </ul>
+                <hr>
+                <ul id="tagsList" class="list list-group">
+                    <li class="item list-group-item" v-for="(e,i) in tags" @click="searchTag(e.key)">{{e.value.text}}<span class="num badge badge-primary float-right">{{nums[i+1]}}</span></li>
+                    <li id="addTag" class="item list-group-item" @click="dialogShow('tag')">建立標籤</li>
+                </ul>
+                <hr>
+                <ul class="list list-group">
+                    <li class="item list-group-item" @click="trash">垃圾桶</li>
+                </ul>
+            </div>
+        </aside>
+        <main id="main" class="p-4">
+            <table class="table table-hover table-striped" v-if="contacts.length" @wheel="recyclerView">
+                <thead>
+                    <th>名稱</th>
+                    <th>電子郵件</th>
+                    <th>電話號碼</th>
+                    <th>標籤</th>
+                    <th></th>
+                </thead>
+                <tbody class="contacts">
+                    <tr class="contact" v-for="(e,i) in contacts.filter(e=>e.value.deleted == getDel).slice(index,index+limit)">
+                        <td>
+                            <img class="avatar" :src="e.value.img" alt="" width="50" height="50">
+                            <span class="fullname">
+                                {{e.value.last_name}}
+                                {{e.value.first_name}}
+                            </span>
+                        </td>
+                        <td class="email">
+                            {{e.value.emails[0].text}}
+                        </td>
+                        <td class="phone">
+                            {{e.value.phones[0].text}}
+                        </td>
+                        <td class="tags">
+                            <span class="badge badge-primary" v-for="(ee,ii) in e.value.tags">{{ee}}</span>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <div v-if="e.value.deleted">
+                                    <button type="button" class="btn btn-success" @click="dialogBack('contact',e.key)">復原</button>
+                                </div>
+                                <div v-else>
+                                    <button type="button" @click="dialogShow('contact',e.key)" class="btn btn-secondary">編輯</button>
+                                    <button type="button" @click="dialogDel('contact',e.key)" class="btn btn-danger ml-1">刪除</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="text-center" v-else>{{msg}}</div>
+        </main>
+    
+        <div id="dialog" class="modal fade">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <form action="" class="newTag" @submit.prevent="dialogSubmit" v-if="dialogType=='tag'">
+                        <div class="modal-header">
+                            <h2 class="title">建立標籤</h2>
+                        </div>
+                        <div class="modal-body">
+                            <input type="text" name="name" class="form-control" placeholder="text..." v-model="tag.text">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="close" style="font-size:1.2vw;" data-dismiss="modal">取消</button>
+                            <button type="submit" class="submit btn btn-primary">儲存</button>
+                        </div>
+                    </form>
+                    <form action="" class="newTag" @submit.prevent="dialogSubmit" v-if="dialogType=='contact'">
+                        <div class="modal-header">
+                            <h2 class="title">{{dialogKey?'編輯':'建立'}}新聯絡人</h2>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-row">
+                                <div class="col-4">
+                                    <label class="w-100 h-100">
+                                        <input type="file" name="" id="" class="avatar" style="display: none;" accept=" .bmp, .jpg, .jpeg, .png, .gif" @change="avatar_preview">
+                                        <img :src="contact.img" alt="" class="avatar_preview w-100 h-100">
+                                    </label>
+                                </div>
+                                <div class="col-8">
+                                    <label class="form-row">
+                                        姓氏
+                                        <input type="text" name="last_name" class="form-control" v-model="contact.last_name">
+                                    </label>
+                                    <label class="form-row">
+                                        名字
+                                        <input type="text" name="first_name" class="form-control" v-model="contact.first_name">
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-12">
+                                    電子郵件
+                                    <div class="input-group" v-for="(e,i) in contact.emails">
+                                        <input type="email" name="email[]" class="form-control" v-model="e.text" required>
+                                        <div class="input-group-append">
+                                            <button type="button" class="btn btn-outline-secondary" @click="contact.emails.push({text:''})" v-if="i==0">+</button>
+                                            <button type="button" class="btn btn-outline-secondary" @click="contact.emails.splice(i,1)" v-else>x</button>
+                                        </div>
+                                    </div>
+                                </div>                                
+                            </div>
+                            <div class="form-row">
+                                <div class="col-12">
+                                    電話
+                                    <div class="input-group" v-for="(e,i) in contact.phones">
+                                        <input type="tel" name="phone[]" class="form-control" v-model="e.text">
+                                        <div class="input-group-append">
+                                            <button type="button" class="btn btn-outline-secondary" @click="contact.phones.push({text:''})" v-if="i==0">+</button>
+                                            <button type="button" class="btn btn-outline-secondary" @click="contact.phones.splice(i,1)" v-else>x</button>
+                                        </div>
+                                    </div>
+                                </div>                                
+                            </div>
+                            <div class="form-row">
+                                <div class="col-12">
+                                    標籤
+                                    <div>
+                                        <label class="tag badge badge-primary mr-2" v-for="(e,i) in tags">
+                                            <input type="checkbox" name="tags[]" v-model="contact.tags" :value="e.key">
+                                            <span class="tag_text ml-1">{{e.value.text}}</span>
+                                        </label>
+                                    </div>
+                                </div>                                
+                            </div>
+                            <div class="form-row">
+                                <div class="col-12">
+                                    備註
+                                    <textarea name="note" id="" class="form-control" v-model="contact.note"></textarea>
+                                </div>                                
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="close" style="font-size:1.2vw;" data-dismiss="modal">取消</button>
+                            <button type="submit" class="submit btn btn-primary">儲存</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/vue.global.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+    "manifest_version": 2,
+    "name": "Speed Test T3",
+    "version": "1.0.0",
+    "browser_action": {
+        "default_popup": "popup.html"
+    },
+    "background": {
+        "scripts": [
+            "background.js"
+        ]
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "http://*/*",
+                "https://*/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ],
+    "permissions": [
+        "storage"
+    ]
+}
